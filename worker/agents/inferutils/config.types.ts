@@ -44,10 +44,10 @@ const MODELS_MASTER = {
             nonReasoning: true,
         }
     },
-    WORKERS_AI_KIMI_K2_6: {
-        id: 'workers-ai/@cf/moonshotai/kimi-k2.6',
+    WORKERS_AI_KIMI_K2_7_CODE: {
+        id: 'workers-ai/@cf/moonshotai/kimi-k2.7-code',
         config: {
-            name: 'Workers AI Kimi K2.6',
+            name: 'Workers AI Kimi K2.7 Code',
             size: ModelSize.REGULAR,
             provider: 'workers-ai',
             creditCost: 3.8,
