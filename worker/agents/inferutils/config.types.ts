@@ -33,6 +33,17 @@ const MODELS_MASTER = {
             contextSize: 0,
         }
     },
+    WORKERS_AI_LLAMA_3_3_70B: {
+        id: 'workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+        config: {
+            name: 'Workers AI Llama 3.3 70B',
+            size: ModelSize.REGULAR,
+            provider: 'workers-ai',
+            creditCost: 1,
+            contextSize: 24000,
+            nonReasoning: true,
+        }
+    },
     // --- Google Models ---
     GEMINI_2_5_PRO: {
         id: 'google-ai-studio/gemini-2.5-pro',
