@@ -44,6 +44,16 @@ const MODELS_MASTER = {
             nonReasoning: true,
         }
     },
+    WORKERS_AI_KIMI_K2_6: {
+        id: 'workers-ai/@cf/moonshotai/kimi-k2.6',
+        config: {
+            name: 'Workers AI Kimi K2.6',
+            size: ModelSize.REGULAR,
+            provider: 'workers-ai',
+            creditCost: 3.8,
+            contextSize: 262144,
+        }
+    },
     // --- Google Models ---
     GEMINI_2_5_PRO: {
         id: 'google-ai-studio/gemini-2.5-pro',
