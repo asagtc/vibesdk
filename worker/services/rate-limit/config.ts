@@ -80,8 +80,10 @@ export const DEFAULT_RATE_LIMIT_SETTINGS: RateLimitSettings = {
 	appCreation: {
 		enabled: true,
 		store: RateLimitStore.DURABLE_OBJECT,
-		limit: 3,
-		dailyLimit: 3,
+		// This fork is an authenticated OnCall build service. Failed/retried
+		// generations must not lock an owner out of App Studio for a day.
+		limit: 100,
+		dailyLimit: 100,
 		period: 24 * 60 * 60, // 24 hours
 	},
 	llmCalls: {
