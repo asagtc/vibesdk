@@ -8,6 +8,7 @@ import {
 } from './config.types';
 
 const PLATFORM_KEY = 'sk-platform-secret-key-1234567890';
+const PLATFORM_GATEWAY_TOKEN = 'cf-platform-gateway-token-1234567890';
 const USER_KEY = 'sk-user-byok-key-1234567890';
 const ATTACKER_URL = 'https://attacker.example/v1';
 const PLATFORM_GATEWAY = 'https://gateway.example/v1';
@@ -87,14 +88,34 @@ describe('getConfigurationForModel - gateway/key coupling', () => {
 	});
 
 	it('uses the platform key and gateway when no override is supplied', async () => {
-		const { apiKey, baseURL } = await getConfigurationForModel(
+		const { apiKey, baseURL, defaultHeaders } = await getConfigurationForModel(
 			MODEL_CONFIG,
-			makeEnv(),
+			makeEnv({ CLOUDFLARE_AI_GATEWAY_TOKEN: PLATFORM_GATEWAY_TOKEN }),
 			'user-1',
 		);
 
 		expect(apiKey).toBe(PLATFORM_KEY);
 		expect(baseURL.startsWith(PLATFORM_GATEWAY)).toBe(true);
+		expect(defaultHeaders).toEqual({
+			'cf-aig-authorization': `Bearer ${PLATFORM_GATEWAY_TOKEN}`,
+		});
+	});
+
+	it('keeps a gateway-only token out of the provider Authorization header', async () => {
+		const { apiKey, defaultHeaders } = await getConfigurationForModel(
+			MODEL_CONFIG,
+			makeEnv({
+				OPENAI_API_KEY: '',
+				CLOUDFLARE_AI_GATEWAY_TOKEN: PLATFORM_GATEWAY_TOKEN,
+			}),
+			'user-1',
+		);
+
+		expect(apiKey).toBe('cloudflare-ai-gateway');
+		expect(apiKey).not.toBe(PLATFORM_GATEWAY_TOKEN);
+		expect(defaultHeaders).toEqual({
+			'cf-aig-authorization': `Bearer ${PLATFORM_GATEWAY_TOKEN}`,
+		});
 	});
 });
 

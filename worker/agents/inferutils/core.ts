@@ -466,14 +466,20 @@ export async function getConfigurationForModel(
 
     const gatewayToken = resolvePlatformGatewayToken(env, gatewayOverride, isUsingCustomGateway);
 
-    // AI Gateway Wholesaling checks - only needed when using platform gateway with user's key
-    // When using user's own gateway, no wholesaling header needed
-    const defaultHeaders = !useUserGateway && gatewayToken && apiKey !== gatewayToken ? {
+    // Cloudflare AI Gateway authentication always belongs in its dedicated
+    // header. When unified billing is used and there is no provider key, the
+    // gateway token is also getApiKey's fallback; do not let the OpenAI client
+    // copy that token into the provider Authorization header.
+    const usesPlatformGateway = !useUserGateway && !isUsingCustomGateway;
+    const defaultHeaders = usesPlatformGateway && gatewayToken ? {
         'cf-aig-authorization': `Bearer ${gatewayToken}`,
     } : undefined;
+    const clientApiKey = usesPlatformGateway && gatewayToken === apiKey
+        ? 'cloudflare-ai-gateway'
+        : apiKey;
     return {
         baseURL,
-        apiKey,
+        apiKey: clientApiKey,
         defaultHeaders
     };
 }
