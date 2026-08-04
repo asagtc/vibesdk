@@ -108,6 +108,23 @@ export class CodingAgentController extends BaseController {
             }
 
             const agentId = generateId();
+            // Persist ownership before any asynchronous generation begins. The
+            // client connects as soon as it receives the streamed agent ID, and
+            // owner-only routes must not race the later blueprint/database save.
+            await new AppService(env).createApp({
+                id: agentId,
+                userId: user.id,
+                sessionToken: null,
+                title: query.substring(0, 100),
+                description: null,
+                originalPrompt: query,
+                finalPrompt: query,
+                framework: null,
+                visibility: 'private',
+                status: 'generating',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
             const modelConfigService = new ModelConfigService(env);
             const projectType = resolveProjectType(body);
             const behaviorType = resolveBehaviorType(body);

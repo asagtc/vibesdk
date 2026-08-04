@@ -82,10 +82,15 @@ export class AppService extends BaseService {
      * Create a new app
      */
     async createApp(appData:schema.NewApp): Promise<schema.App> {
+        const { id: _id, ...updates } = appData;
         const [app] = await this.database
             .insert(schema.apps)
             .values({
                 ...appData,
+            })
+            .onConflictDoUpdate({
+                target: schema.apps.id,
+                set: updates,
             })
             .returning();
         return app;
