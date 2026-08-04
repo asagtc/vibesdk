@@ -154,6 +154,55 @@ const SCRATCH_WRANGLER_JSONC = `{
 }
 `;
 
+const ONCALL_APP_SDK = `/**
+ * OnCall generated-app capability client.
+ *
+ * This virtual origin is intercepted by the OnCall Workers for Platforms
+ * outbound worker. Do not add API keys, tenant ids, user ids, or installation
+ * ids here: trusted request context is supplied by the OnCall runtime.
+ */
+const CAPABILITY_ORIGIN = 'https://capabilities.oncall.internal';
+const MUTATING_CAPABILITIES = new Set([
+  'customers.resolve',
+  'customers.recordEvent',
+  'carts.create',
+  'orders.create',
+  'payments.createCheckout',
+  'chat.postMessage',
+  'files.upload',
+  'notifications.send',
+  'objects.emit',
+]);
+
+type InvokeOptions = { idempotencyKey?: string };
+type CapabilityFailure = {
+  ok: false;
+  error: { code: string; message: string; retryable: boolean; requestId?: string };
+};
+type CapabilitySuccess<T> = { ok: true; data: T; requestId: string };
+
+export async function invokeOnCall<T>(
+  capability: string,
+  input: unknown,
+  options: InvokeOptions = {},
+): Promise<T> {
+  const idempotencyKey = options.idempotencyKey?.trim();
+  if (MUTATING_CAPABILITIES.has(capability) && !idempotencyKey) {
+    throw new Error(\`A stable idempotency key is required for \${capability}\`);
+  }
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (idempotencyKey) headers['idempotency-key'] = idempotencyKey;
+  const response = await fetch(\`\${CAPABILITY_ORIGIN}/v1/capabilities/\${capability}\`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  });
+  const result = await response.json() as CapabilitySuccess<T> | CapabilityFailure;
+  if (!result.ok) throw new Error(\`\${result.error.code}: \${result.error.message}\`);
+  return result.data;
+}
+`;
+
 const SCRATCH_TEMPLATE_INSTRUCTIONS = `
 To build a valid, previewable and deployable project, it is essential to follow few important rules:
 
@@ -164,6 +213,10 @@ To build a valid, previewable and deployable project, it is essential to follow 
 3. A \`wrangler.jsonc\` is already provided and **MUST NOT be modified**. It is preconfigured for the deployment environment.
 
 4. A \`vite.config.ts\` is already provided. **DO NOT modify it** unless absolutely necessary.
+
+5. This OnCall fork includes \`worker/oncall.ts\`. All customer, product, inventory, cart, order, payment, member, chat, file, notification, and object access **MUST** go through \`invokeOnCall\` from that file and must only run in the Worker. Browser components call routes in \`worker/index.ts\`; never import the capability client into browser code.
+
+6. OnCall is authoritative for business data. Do not create a second product, customer, order, or payment source of truth. Mutating capabilities require a stable idempotency key.
 `;
 
 /**
@@ -179,15 +232,15 @@ export function createScratchTemplateDetails(): TemplateDetails {
             'package.json': SCRATCH_PACKAGE_JSON,
             'vite.config.ts': VITE_CONFIG_MINIMAL,
             'wrangler.jsonc': SCRATCH_WRANGLER_JSONC,
+            'worker/oncall.ts': ONCALL_APP_SDK,
         },
         language: 'typescript',
         deps: {},
         projectType: 'general',
         frameworks: [],
-        importantFiles: [],
-        dontTouchFiles: ['wrangler.jsonc'],
+        importantFiles: ['worker/oncall.ts'],
+        dontTouchFiles: ['wrangler.jsonc', 'worker/oncall.ts'],
         redactedFiles: [],
         disabled: false,
     };
 }
-
