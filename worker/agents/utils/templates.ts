@@ -244,3 +244,7 @@ export function createScratchTemplateDetails(): TemplateDetails {
         disabled: false,
     };
 }
+
+export function getBuiltInTemplateDetails(templateName: string): TemplateDetails | null {
+    return templateName === 'scratch' ? createScratchTemplateDetails() : null;
+}

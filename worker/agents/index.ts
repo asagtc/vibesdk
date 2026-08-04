@@ -5,7 +5,7 @@ import { InferenceContext } from './inferutils/config.types';
 import { SandboxSdkClient } from '../services/sandbox/sandboxSdkClient';
 import { selectTemplate } from './planning/templateSelector';
 import { TemplateDetails } from '../services/sandbox/sandboxTypes';
-import { createScratchTemplateDetails } from './utils/templates';
+import { createScratchTemplateDetails, getBuiltInTemplateDetails } from './utils/templates';
 import { TemplateSelection } from './schemas';
 import type { ImageAttachment } from '../types/image-attachment';
 import { BaseSandboxService } from 'worker/services/sandbox/BaseSandboxService';
@@ -101,6 +101,23 @@ async function handleUserSelectedTemplate(
     logger: StructuredLogger
 ): Promise<TemplateQueryResult> {
     logger.info('Using user-specified template, bypassing AI selection', { selectedTemplate: templateName });
+
+    const builtInTemplate = getBuiltInTemplateDetails(templateName);
+    if (builtInTemplate) {
+        const selection: TemplateSelection = {
+            selectedTemplateName: builtInTemplate.name,
+            reasoning: 'User-specified built-in template',
+            useCase: 'General',
+            complexity: 'moderate',
+            styleSelection: 'Custom',
+            projectType: builtInTemplate.projectType,
+        };
+        return {
+            templateDetails: builtInTemplate,
+            selection,
+            projectType: builtInTemplate.projectType,
+        };
+    }
     
     const templatesResponse = await SandboxSdkClient.listTemplates();
     if (!templatesResponse?.success) {

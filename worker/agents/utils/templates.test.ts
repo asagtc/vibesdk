@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createScratchTemplateDetails } from './templates';
+import { createScratchTemplateDetails, getBuiltInTemplateDetails } from './templates';
 
 describe('OnCall scratch template', () => {
 	it('includes the protected server-side OnCall capability client', () => {
@@ -12,5 +12,10 @@ describe('OnCall scratch template', () => {
 		expect(template.importantFiles).toContain('worker/oncall.ts');
 		expect(template.dontTouchFiles).toContain('worker/oncall.ts');
 		expect(template.description.usage).toContain('OnCall is authoritative for business data');
+	});
+
+	it('resolves scratch without requiring the external template catalog', () => {
+		expect(getBuiltInTemplateDetails('scratch')?.name).toBe('scratch');
+		expect(getBuiltInTemplateDetails('react')).toBeNull();
 	});
 });
