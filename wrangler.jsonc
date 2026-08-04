@@ -4,7 +4,9 @@
  */
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "vibesdk-production",
+	"name": "oncall-build",
+	"account_id": "309e7220ba5b3ced54e445a87f08f16b",
+	"keep_vars": true,
 	"main": "worker/index.ts",
 	// Facets (durable-object-facets) require a recent compat date — bumped
 	// from 2025-08-10 to enable `ctx.facets.get()` for space-generated
@@ -73,7 +75,7 @@
     "dispatch_namespaces": [
         {
             "binding": "DISPATCHER",
-            "namespace": "vibesdk-default-namespace",
+            "namespace": "oncall-build-apps",
             "remote": true
         }
     ],
@@ -83,11 +85,11 @@
 			"image": "./SandboxDockerfile",
             // "image": "registry.cloudflare.com/vibesdk-production-userappsandboxservice:cfe197fc",
             // Altering max_instances value will have no effect. Please use the MAX_SANDBOX_INSTANCES var instead.
-			"max_instances": 1400,
+			"max_instances": 50,
             // ATTENTION: Altering instance_type value will have no effect. Please use the SANDBOX_INSTANCE_TYPE var instead.
             "instance_type": {
                 "vcpu": 4,
-                "memory_mib": 8192,
+                "memory_mib": 12288,
                 "disk_mb": 10240
             },
             "rollout_step_percentage": 100,
@@ -99,8 +101,8 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "vibesdk-db",
-			"database_id": "c4721a2b-b96a-428a-8b2a-b3d255b307e9",
+			"database_name": "oncall-build-db",
+			"database_id": "83508968-36cc-4d63-b989-71ad80c3d0b8",
 			"migrations_dir": "migrations"
 		}
 	],
@@ -140,13 +142,13 @@
     "r2_buckets": [
       {
         "binding": "TEMPLATES_BUCKET",
-        "bucket_name": "vibesdk-templates"
+        "bucket_name": "oncall-build-templates"
       }
     ],
     "kv_namespaces": [
         {
             "binding": "VibecoderStore",
-            "id": "f066f3c2e4824981b48e8586c04db9c1"
+            "id": "3c572e847edb48a9916d3c21352ea796"
         }
     ],
     // "placement": {
@@ -187,23 +189,23 @@
 	],
 	"routes": [
         {
-            "pattern": "build.cloudflare.dev",
+            "pattern": "build.oncallpages.com",
             "custom_domain": true
         },
         {
-            "pattern": "*build-preview.cloudflare.dev/*",
+            "pattern": "*build.oncallpages.com/*",
             "custom_domain": false,
-            "zone_id": "db01fac4261b2604aacad8410443a3e2"
+            "zone_id": "12c6cdb867d7b1128d058183a35d4062"
         }
     ],
 	"vars": {
         "TEMPLATES_REPOSITORY": "https://github.com/cloudflare/vibesdk-templates",
         "ALLOWED_EMAIL": "",
-        "DISPATCH_NAMESPACE": "vibesdk-default-namespace",
+        "DISPATCH_NAMESPACE": "oncall-build-apps",
         "ENABLE_READ_REPLICAS": "true",
         "ENABLE_EMAIL_AUTH": "true",
         "ENABLE_CLOUDFLARE_LIMITS": "true",
-        "CLOUDFLARE_AI_GATEWAY": "vibesdk-gateway",
+        "CLOUDFLARE_AI_GATEWAY": "default",
         "PLATFORM_CAPABILITIES": {
             "features": {
                 "app": {
@@ -218,7 +220,9 @@
             },
             "version": "1.0.0"
         },
-        "CUSTOM_DOMAIN": "",
+        "CUSTOM_DOMAIN": "build.oncallpages.com",
+        "ENVIRONMENT": "prod",
+        "ONCALL_APP_ORIGINS": "https://app.oncallpages.com,https://app.oncallos.com,https://oncallpages.com",
         "MAX_SANDBOX_INSTANCES": "10",
         "SANDBOX_INSTANCE_TYPE": "standard-3",
         "DEV_BROWSER_SIDECAR_URL": "http://127.0.0.1:9223",
