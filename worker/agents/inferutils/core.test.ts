@@ -22,6 +22,14 @@ const MODEL_CONFIG: AIModelConfig = {
 	contextSize: 128_000,
 };
 
+const WORKERS_AI_MODEL_CONFIG: AIModelConfig = {
+	name: '@cf/moonshotai/kimi-k2.7-code',
+	size: ModelSize.REGULAR,
+	provider: 'workers-ai',
+	creditCost: 1,
+	contextSize: 262_144,
+};
+
 // Build a deterministic env: a valid platform provider key and a fixed
 // platform gateway URL so buildGatewayUrl never depends on the AI binding.
 function makeEnv(overrides: Record<string, unknown> = {}): Env {
@@ -113,6 +121,24 @@ describe('getConfigurationForModel - gateway/key coupling', () => {
 
 		expect(apiKey).toBe('cloudflare-ai-gateway');
 		expect(apiKey).not.toBe(PLATFORM_GATEWAY_TOKEN);
+		expect(defaultHeaders).toEqual({
+			'cf-aig-authorization': `Bearer ${PLATFORM_GATEWAY_TOKEN}`,
+		});
+	});
+
+	it('uses separate provider and gateway credentials for Workers AI', async () => {
+		const providerToken = 'cf-workers-ai-provider-token-1234567890';
+		const { apiKey, defaultHeaders } = await getConfigurationForModel(
+			WORKERS_AI_MODEL_CONFIG,
+			makeEnv({
+				OPENAI_API_KEY: '',
+				CLOUDFLARE_API_TOKEN: providerToken,
+				CLOUDFLARE_AI_GATEWAY_TOKEN: PLATFORM_GATEWAY_TOKEN,
+			}),
+			'user-1',
+		);
+
+		expect(apiKey).toBe(providerToken);
 		expect(defaultHeaders).toEqual({
 			'cf-aig-authorization': `Bearer ${PLATFORM_GATEWAY_TOKEN}`,
 		});

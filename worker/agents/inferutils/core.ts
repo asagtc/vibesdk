@@ -396,6 +396,14 @@ async function getApiKey(
         return { apiKey: envApiKey, isUserCredential: false };
     }
 
+    // Workers AI is the upstream provider behind the unified AI Gateway
+    // `workers-ai/...` model namespace. It still needs the Cloudflare account
+    // API token in the ordinary Authorization header; the separate AI Gateway
+    // token belongs only in cf-aig-authorization below.
+    if (provider === 'workers-ai' && isValidApiKey(env.CLOUDFLARE_API_TOKEN)) {
+        return { apiKey: env.CLOUDFLARE_API_TOKEN, isUserCredential: false };
+    }
+
     // Final platform fallback: shared gateway/CF API token.
     return {
         apiKey: resolvePlatformGatewayToken(env, runtimeOverrides?.aiGatewayOverride, false),
