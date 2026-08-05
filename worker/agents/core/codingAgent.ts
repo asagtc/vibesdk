@@ -323,10 +323,6 @@ export class CodeGeneratorAgent extends Agent<Env, AgentState> implements AgentI
         return this.ctx.getWebSockets();
     }
 
-    runInBackground(task: Promise<unknown>): void {
-        this.ctx.waitUntil(task);
-    }
-
     handleVaultUnlocked(): void {
         this.secretsClient?.notifyUnlocked();
         this.logger().info('Vault unlocked notification received', {});
@@ -635,9 +631,9 @@ export class CodeGeneratorAgent extends Agent<Env, AgentState> implements AgentI
             if (!this.behavior.isCodeGenerating()) {
                 // If idle, start generation process
                 this.logger().info('User input during IDLE state, starting generation');
-                this.runInBackground(this.behavior.generateAllFiles().catch(error => {
+                await this.behavior.generateAllFiles().catch(error => {
                     this.logger().error('Error starting generation from user input:', error);
-                }));
+                });
             }
 
         } catch (error) {
