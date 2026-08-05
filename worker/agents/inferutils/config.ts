@@ -131,7 +131,7 @@ const DEFAULT_AGENT_CONFIG: AgentConfig = {
     blueprint: {
         name: AIModels.WORKERS_AI_KIMI_K2_7_CODE,
         reasoning_effort: 'low',
-        max_tokens: 12000,
+        max_tokens: 24000,
         fallbackModel: AIModels.WORKERS_AI_KIMI_K2_7_CODE,
         temperature: 1,
     },
@@ -152,14 +152,14 @@ const DEFAULT_AGENT_CONFIG: AgentConfig = {
     firstPhaseImplementation: {
         name: AIModels.WORKERS_AI_KIMI_K2_7_CODE,
         reasoning_effort: 'low',
-        max_tokens: 12000,
+        max_tokens: 24000,
         temperature: 1,
         fallbackModel: AIModels.WORKERS_AI_KIMI_K2_7_CODE,
     },
     phaseImplementation: {
         name: AIModels.WORKERS_AI_KIMI_K2_7_CODE,
         reasoning_effort: 'low',
-        max_tokens: 12000,
+        max_tokens: 24000,
         temperature: 1,
         fallbackModel: AIModels.WORKERS_AI_KIMI_K2_7_CODE,
     },

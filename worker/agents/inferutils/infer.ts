@@ -1,5 +1,5 @@
 import { infer, InferError, InferResponseString, InferResponseObject, AbortError, CompletionConfig } from './core';
-import { createAssistantMessage, createUserMessage, Message } from './common';
+import { createUserMessage, Message } from './common';
 import z from 'zod';
 // import { CodeEnhancementOutput, CodeEnhancementOutputType } from '../codegen/phasewiseGenerator';
 import { SchemaFormat } from './schemaFormatters';
@@ -223,11 +223,15 @@ export async function executeInference<T extends z.ZodObject>(   {
             );
 
             if (error instanceof InferError && !(error instanceof AbortError)) {
-                // If its an infer error and not an abort error, we can append the partial response to the list of messages and ask a cheaper model to retry the generation
+                // A truncated structured response is usually fixed by retrying
+                // with the same capable model. In particular, Workers AI is the
+                // platform default and must not silently fall back to a provider
+                // that may not be configured. Avoid echoing a very large partial
+                // JSON document back into the context; it consumes the retry's
+                // output budget and makes another truncation more likely.
                 if (error.response && error.response.length > 1000) {
-                    messages.push(createAssistantMessage(error.response));
                     messages.push(createUserMessage(responseRegenerationPrompts));
-                    useCheaperModel = true;
+                    useCheaperModel = !String(modelName).startsWith('workers-ai/');
                 }
             } else {
                 // Switch to fallback model if available
